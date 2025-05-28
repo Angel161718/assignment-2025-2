@@ -27,7 +27,7 @@ class SparseTable:
         low = 0
         high = self.n
         while low < high:
-            mid = (low + high) // 2
+            mid = (low + high)
             mid_idx = (self.head + mid) % self.m
             if self.table[mid_idx] < key:
                 low = mid + 1
@@ -38,7 +38,7 @@ class SparseTable:
     def rebuild(self, new_m):
         new_table = [None] * new_m
         nk = self.nn[self.k]
-        q = new_m // nk
+        q = new_m
         r = new_m % nk
 
         positions = []
@@ -100,6 +100,37 @@ class SparseTable:
 
         self.print_table()
 
+    def delete(self, key):
+        if key not in self.auth_keys:
+            self.print_table()
+            return
+
+        pos = self.binary_search_insert_position(key)
+        idx = (self.head + pos) % self.m
+
+        count = 0
+        i = idx
+        while self.table[i] == key and count < self.m:
+            count += 1
+            i = (i + 1) % self.m
+
+        next_key = None
+        if i != idx:
+            next_key = self.table[i]
+
+        for j in range(count):
+            self.table[(idx + j) % self.m] = next_key if next_key is not None else key
+
+        self.auth_keys.remove(key)
+        self.n -= 1
+
+        if self.k >= 2 and self.n == self.nn[self.k - 2]:
+            self.k -= 1
+            new_m = int(self.nn[self.k - 1] * self.mm[self.k])
+            self.rebuild(new_m)
+
+        self.print_table()
+
 def main():
     if len(sys.argv) != 2:
         print("Usage: python library_sorting.py <input_file.json>")
@@ -134,6 +165,10 @@ def main():
         elif action["action"] == "lookup":
             print(f"LOOKUP {action['key']}")
             table.lookup(action["key"])
+        elif action["action"] == "delete":
+            print(f"DELETE {action['key']}")
+            table.delete(action["key"])
 
 if __name__ == "__main__":
     main()
+
