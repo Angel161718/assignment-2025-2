@@ -35,10 +35,41 @@ class SparseTable:
                 high = mid
         return low
 
+    def rebuild(self, new_m):
+        new_table = [None] * new_m
+        nk = self.nn[self.k]
+        q = new_m // nk
+        r = new_m % nk
+
+        positions = []
+        index = 0
+        for i in range(nk):
+            gap = q + 1 if i < r else q
+            positions.append(index)
+            index += gap
+
+        self.auth_keys.sort()
+
+        for key, pos in zip(self.auth_keys, positions):
+            new_table[pos] = key
+
+        for i in range(1, new_m):
+            if new_table[i] is None:
+                new_table[i] = new_table[i - 1]
+
+        self.table = new_table
+        self.m = new_m
+        self.head = 0
+
     def insert(self, key):
         if key in self.auth_keys:
             self.print_table()
             return
+
+        if self.n == self.nn[self.k]:
+            self.k += 1
+            new_m = int(self.nn[self.k] * self.mm[self.k + 1])
+            self.rebuild(new_m)
 
         pos = self.binary_search_insert_position(key)
         idx = (self.head + pos) % self.m
@@ -106,4 +137,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
