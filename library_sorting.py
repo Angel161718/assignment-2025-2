@@ -58,6 +58,17 @@ class SparseTable:
         self.n += 1
         self.print_table()
 
+    def lookup(self, key):
+        pos = self.binary_search_insert_position(key)
+        idx = (self.head + pos) % self.m
+
+        if idx < self.m and self.table[idx] == key:
+            print(f"Key {key} found at position {pos}.")
+        else:
+            print(f"Key {key} not found. It should be at position {pos}.")
+
+        self.print_table()
+
 def main():
     if len(sys.argv) != 2:
         print("Usage: python library_sorting.py <input_file.json>")
@@ -89,6 +100,9 @@ def main():
         if action["action"] == "insert":
             print(f"INSERT {action['key']}")
             table.insert(action["key"])
+        elif action["action"] == "lookup":
+            print(f"LOOKUP {action['key']}")
+            table.lookup(action["key"])
 
 if __name__ == "__main__":
     main()
